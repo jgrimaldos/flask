@@ -1,0 +1,91 @@
+<!doctype html>
+<title>Flask Test Grima</title>
+{% if session.has_key('auth_id') == False %}
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/jso.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/json2.js') }}"></script>
+<script type="text/javascript">
+
+//var base_uri = 'http://localhost:5000/';
+var base_uri = 'https://piton.herokuapp.com/';
+var auth_endpoint = 'https://login.salesforce.com/services/oauth2/authorize';
+var client_id = '3MVG9rFJvQRVOvk5lxC2Oa3Ka9V0CIdYl9cIts0OH3bBA0uZYDNCGmhZurzaTk6VfsD8WawaTshyIIdwv_r5s';
+var redirect_uri = base_uri + 'oauth2/callback';
+var display = 'touch';
+
+$(document).ready(function () {
+
+	var extractToken = function(hash) {
+		var match = hash.match(/access_token=([^&;=]+)/);
+		return !!match && match[1];
+	};
+
+	function extractParams(params) {
+		var params = new Object();
+		var issued_at = document.location.hash.match(/issued_at=([^&;=]+)/);
+		if (!!issued_at && issued_at[1]) {
+			params.issue_at = issued_at[1];
+		}
+
+		var expires_in = document.location.hash.match(/expires_in=([^&;=]+)/);
+		if (!!expires_in && expires_in[1]) {
+			params.expires_in = expires_in[1];
+		}
+
+		var refresh_token = document.location.hash.match(/refresh_token=([^&;=]+)/);
+		if (!!refresh_token && refresh_token[1]) {
+			params.refresh_token = refresh_token[1];
+		}
+
+		var instance_url = document.location.hash.match(/instance_url=([^&;=]+)/);
+		if (!!instance_url && instance_url[1]) {
+			params.instance_url = decodeURIComponent(instance_url[1]);
+		}
+
+		var id = document.location.hash.match(/id=([^&;=]+)/);
+		if (!!id && id[1]) {
+			params.id = decodeURIComponent(id[1]);
+		}
+
+		var signature = document.location.hash.match(/signature=([^&;=]+)/);
+		if (!!signature && signature[1]) {
+			params.signature = signature[1];
+		}
+		return params;
+	} 
+
+	var token = extractToken(document.location.hash);
+	console.log(token);
+	if (!token) {
+
+		var sfdc_token_url = auth_endpoint + "?response_type=token" + "&client_id="    + client_id + "&redirect_uri=" + redirect_uri + "&display=" + display;
+
+	    $("a#sfdc_link").attr("href", sfdc_token_url);
+	} else {
+		params = extractParams();
+//		alert(JSON.stringify(params));
+		var url = base_uri + 'auth';
+		var formBody ='<form action="' + url + '" method="post" style="display: none">' + '<input type="text" name="auth" value="' + token + '" />';
+		var keys = Object.keys(params);
+		for (var key in keys) {
+			formBody = formBody + '<input type="text" name="' + keys[key] + '" value="' + params[keys[key]] + '" />';
+		}	 
+		formBody += '</form>'; 
+		var form = $(formBody);
+		$('body').append(form);
+		$(form).submit();
+	}
+})
+
+</script>
+{% endif %}
+<div>
+	<h1>REST Test</h1>
+
+	{% if session['auth_id'] %}
+	<h2>Logged in as: {{ session['auth_id'] }}</h2>
+	{% else %}
+	<a id=sfdc_link href="">Conectar a SFDC</a>
+	<div id=SFDC_auth>
+	{% endif %}
+</div>

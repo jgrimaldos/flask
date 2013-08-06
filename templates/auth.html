@@ -1,0 +1,8 @@
+<!doctype html>
+<title>Flask Test Grima</title>
+<div>
+	<h1>Autorización válida</h1>
+	{% for key in request.form.keys() %}
+		<div>{{key}} : {{ request.form.get(key) }}</div>
+	{% endfor %}
+</div>
